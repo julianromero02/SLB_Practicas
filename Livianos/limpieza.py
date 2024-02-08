@@ -5,7 +5,7 @@ from unidecode import unidecode
 import funciones
 
 #Cargar el archivo de Excel
-df=pd.read_excel('livianos16.xlsx')
+df=pd.read_excel('livianosALS.xlsx')
 
 #¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ IMPORTANTE CAMBIAR FECHA PARA CADA DIA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -156,8 +156,8 @@ def provisionar(row):
     hour_request=row['Fecha y hora de creacion de OB2']
     def recargo_hora(freight,hour,add,superadd):
         #¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ IMPORTANTE CAMBIAR FECHA PARA CADA DIA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       compare_datetime_a = pd.to_datetime('01/15/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
-       compare_datetime_b = pd.to_datetime('01/15/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_a = pd.to_datetime('02/05/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_b = pd.to_datetime('02/05/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
        if hour > compare_datetime_a and hour<compare_datetime_b:
            return freight+add
        elif hour >=compare_datetime_b:
@@ -222,7 +222,7 @@ def provisionar(row):
             return freight
             
     else:
-        if 150000 < row['StandByDays'] < 1500000:
+        if 150000 < row['StandByDays'] < 1500000 and not None:
             costo= int(row['StandByDays']/100000)
             costo=costo+1
             if(row['Vehicle Type']=="CHALUPA"and ['DaysOfServices']==1) :
@@ -230,7 +230,7 @@ def provisionar(row):
                 return freight
             if (row['StandByDays'] % 100000)==0:
                 freight=row['DaysOfServices']*costo*100000
-            elif(row['StandByDays'] % 100000)<=70000:
+            elif(row['StandByDays'] % 100000)<=80000:
                 freight=row['DaysOfServices']*costo*100000
             else:
                 costo=costo+1
@@ -286,7 +286,7 @@ def tipo(row):
 #Limpieza
 
 df=df[df['ESTADO'].str.lower() != 'viaje cancelado']
-df=df.loc[df['BL'] != 'ESP']
+df=df.loc[df['BL'] == 'ESP']
 
 #Reemplazo los valores de Logistic Cordinator
 df['Logistic Cordinator']=cordinator
@@ -358,7 +358,6 @@ df['Freight']=df['Freight'].apply(sin_decimales)
 df['Vehicle Type']=df['Vehicle Type'].str.upper().replace(' ','')
 df['GLAccountType']="EMPLOYEE TRAVEL"
 df['Vehicle Type']=df.apply(tipo,axis=1)
-df['Distance KM']=""
-df['Freight']=""
-df.to_excel('01-16.xlsx', engine='openpyxl', index=False)
-
+#df['Distance KM']=""
+#df['Freight']=""
+df.to_excel('29-4_ALS.xlsx', engine='openpyxl', index=False)

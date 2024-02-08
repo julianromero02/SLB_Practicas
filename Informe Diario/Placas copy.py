@@ -167,11 +167,11 @@ def picoyplaca(row,op):
                 else:
                     return "NO"
             if re.search('villavicencio', ciudad, re.IGNORECASE):
-                if (dia_de_semana == 0 and end in [1, 2]) or \
-                (dia_de_semana == 1 and end in [3, 4]) or \
-                (dia_de_semana == 2 and end in [5, 6]) or \
-                (dia_de_semana == 3 and end in [7, 8]) or \
-                (dia_de_semana == 4 and end in [9, 0]):
+                if (dia_de_semana == 1 and end in [1, 2]) or \
+                (dia_de_semana == 2 and end in [3, 4]) or \
+                (dia_de_semana == 3 and end in [5, 6]) or \
+                (dia_de_semana == 4 and end in [7, 8]) or \
+                (dia_de_semana == 0 and end in [9, 0]):
                     return "SI"
             if re.search(r'(bucaramanga|cartagena)', ciudad, re.IGNORECASE):
                 if dia_de_semana == 0 and end in [5, 6]:

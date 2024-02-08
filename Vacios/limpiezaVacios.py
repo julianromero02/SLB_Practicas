@@ -13,7 +13,7 @@ def limpiar_lugares(lugar):
     lugar=str(lugar)
     lugar=unidecode(lugar)
     lugar=lugar.upper()
-    ciudades=['BOGOTA','VILLAVICENCIO','NEIVA','COTA','POZO AKIRA','PUERTO WILCHES','CASTILLA','ACACIAS','YOPAL','VILLANUEVA','PUERTO GAITAN','RUBIALES','TUNJA','CHIPAQUE','PENDARE','BARRANCABERMEJA','TAURAMENA','OASIS']
+    ciudades=['BOGOTA','VILLAVICENCIO','CAÑO SUR','BARBOSA','ARMENIA','CALI','NEIVA','COTA','POZO AKIRA','PUERTO WILCHES','CASTILLA','ACACIAS','YOPAL','VILLANUEVA','PUERTO GAITAN','RUBIALES','TUNJA','CHIPAQUE','PENDARE','BARRANCABERMEJA','TAURAMENA','OASIS']
     #if len(lugar)<15: 
     for ciudad in ciudades:
         match=re.search(rf'\b{ciudad}\b',lugar,flags=re.IGNORECASE)
@@ -79,7 +79,7 @@ def calcular_distancia(row):
                     return aux
     return aux
 #Cargar el archivo de Excel
-df=pd.read_excel('v.xlsx')
+df=pd.read_excel('UnidossVacios.xlsx')
 #Elimino registros cancelados
 df=df[df['ESTADO'].str.lower() != 'viaje cancelado']
 df=df[df['ESTADO'].str.lower() != 'cancelar viaje']
