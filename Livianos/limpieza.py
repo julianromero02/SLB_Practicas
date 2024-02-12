@@ -5,7 +5,7 @@ from unidecode import unidecode
 import funciones
 
 #Cargar el archivo de Excel
-df=pd.read_excel('livianosALS.xlsx')
+df=pd.read_excel('livianos10.xlsx')
 
 #¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ IMPORTANTE CAMBIAR FECHA PARA CADA DIA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -33,7 +33,7 @@ def truncar_cadena(cadena,op):
         if "CALL" not in cadena:
             cadena=cadena.replace(" ","")
             if len(cadena) > 6:
-                return cadena[-6:]
+               return cadena[-7:]
             else:
                 return cadena
         else:
@@ -156,8 +156,8 @@ def provisionar(row):
     hour_request=row['Fecha y hora de creacion de OB2']
     def recargo_hora(freight,hour,add,superadd):
         #¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ IMPORTANTE CAMBIAR FECHA PARA CADA DIA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       compare_datetime_a = pd.to_datetime('02/05/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
-       compare_datetime_b = pd.to_datetime('02/05/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_a = pd.to_datetime('02/09/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_b = pd.to_datetime('02/09/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
        if hour > compare_datetime_a and hour<compare_datetime_b:
            return freight+add
        elif hour >=compare_datetime_b:
@@ -285,21 +285,28 @@ def tipo(row):
 
 #Limpieza
 
-df=df[df['ESTADO'].str.lower() != 'viaje cancelado']
-df=df.loc[df['BL'] == 'ESP']
+df=df[df['ESTADO'].str.lower() != 'CANCELADO']
+df=df[df['Suppliers']!= None]
 
 #Reemplazo los valores de Logistic Cordinator
-df['Logistic Cordinator']=cordinator
+import pandas as pd
+
+# Assuming df is your DataFrame
+df['Logistic Coordinator'] = df.apply(lambda x: 'Jhon Gomez' if x['BL'] == 'ESP' else 'Paola Andrea Chacon Acuna', axis=1)#axis =1 es para rows
+
 #Copiar las columna 1 a otras 2
 df['Order Base'] = df['NN']
 df['Shipment'] = df['NN']
 #Dejar un unico formato de fecha
 df['Period']=fecha
 # Formato de placas
+#Verificar que si es call out
+df['Vehicle plate'] = df.apply(lambda row: 'CALL OUT' if row['Service Type'] == 'CALL OUT' else row['Vehicle plate'], axis=1)
 df['Vehicle plate'] = df['Vehicle plate'].apply(lambda x: truncar_cadena(x, op=1))
 df['Real Plate services'] = df['Real Plate services'].apply(lambda x: truncar_cadena(x, op=2))
 df['Real Plate services'] = df['Real Plate services'].str.upper()
 df['Vehicle plate'] = df['Vehicle plate'].str.upper()
+df['Vehicle plate'] = df['Vehicle plate'].str.replace('-', '')
 # De SI a YES
 df['Rechargable Cost To Client']=df['Rechargable Cost To Client'].str.upper().replace('SI','YES')
 #Vamos a corregir el WBS
@@ -360,4 +367,4 @@ df['GLAccountType']="EMPLOYEE TRAVEL"
 df['Vehicle Type']=df.apply(tipo,axis=1)
 #df['Distance KM']=""
 #df['Freight']=""
-df.to_excel('29-4_ALS.xlsx', engine='openpyxl', index=False)
+df.to_excel('02-10.xlsx', engine='openpyxl', index=False)
