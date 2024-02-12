@@ -1,7 +1,7 @@
 import pandas as pd
 import glob
 
-ruta_archivos = 'C:/Users/Julian/Documents/SLB/SLB_programas/Vacios/reportes/*.xlsx'
+ruta_archivos = 'C:/Users/57317/Desktop/SLB_Practicas/Vacios/reportes/*.xlsx'
 # Obtener la lista de archivos que coinciden con el patrón
 archivos = glob.glob(ruta_archivos)
 
@@ -21,4 +21,4 @@ combined_df = pd.concat(dataframes, ignore_index=True)
 #combined_df = combined_df.drop_duplicates()
 combined_df = combined_df.sort_values('CONSECUTIVO')
 # Guardar el DataFrame combinado en un archivo excel
-combined_df.to_excel('C:/Users/Julian/Documents/SLB/SLB_programas/Vacios/reportes/UnidossVacios.xlsx', index=False)
+combined_df.to_excel('C:/Users/57317/Desktop/SLB_Practicas/Vacios/reportes/UnidossVacios.xlsx', index=False)
