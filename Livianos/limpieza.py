@@ -5,13 +5,13 @@ from unidecode import unidecode
 import funciones
 
 #Cargar el archivo de Excel
-df=pd.read_excel('livianos10.xlsx')
+df=pd.read_excel('livianos6.xlsx')
 
 #¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ IMPORTANTE CAMBIAR FECHA PARA CADA DIA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #Establecer variables
 cordinator="Paola Andrea Chacon Acuna"
-fecha="Feb-24"
+fecha="Mar-24"
 # Definir una función para truncar los valores de la columna
 def truncar_cadena(cadena,op):
     cadena = str(cadena)
@@ -156,8 +156,8 @@ def provisionar(row):
     hour_request=row['Fecha y hora de creacion de OB2']
     def recargo_hora(freight,hour,add,superadd):
         #¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ IMPORTANTE CAMBIAR FECHA PARA CADA DIA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       compare_datetime_a = pd.to_datetime('02/09/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
-       compare_datetime_b = pd.to_datetime('02/09/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_a = pd.to_datetime('02/05/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_b = pd.to_datetime('02/05/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
        if hour > compare_datetime_a and hour<compare_datetime_b:
            return freight+add
        elif hour >=compare_datetime_b:
@@ -367,4 +367,4 @@ df['GLAccountType']="EMPLOYEE TRAVEL"
 df['Vehicle Type']=df.apply(tipo,axis=1)
 #df['Distance KM']=""
 #df['Freight']=""
-df.to_excel('02-10.xlsx', engine='openpyxl', index=False)
+df.to_excel('02-06.xlsx', engine='openpyxl', index=False)
