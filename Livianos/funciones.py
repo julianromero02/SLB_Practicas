@@ -65,8 +65,8 @@ def distanciaReal(inicio, fin):
 
         except requests.exceptions.RequestException as e:
             distancia = f"Error de conexión: {str(e)}"  # Asignar un valor predeterminado aquí
-            return distancia
+            return 100
     else:
-        return "Error: No se encontraron coordenadas para calcular la distancia"
+        return 100
 
 # Rest of your code remains unchanged...

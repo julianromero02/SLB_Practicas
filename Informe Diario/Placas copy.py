@@ -224,9 +224,9 @@ def leeryUnir():
 #region Read the reports
 df_report = pd.read_excel('Daily Utilisation Report.xlsx', header=4)
 df_petrol = pd.read_excel('Entrapetrol.xlsx', header=1)
-df_petrol=df_petrol.iloc[:,1:]
-df_formato_guia = pd.read_excel('Formato guia control de renta.xlsx', sheet_name='Control Renta Livianos', header=3, parse_dates=['Fecha Inicio', 'Fecha Finalizacion'])
-df_formato_guia=df_formato_guia.iloc[:,2:]
+df_petrol=df_petrol.iloc[:,:]
+df_formato_guia = pd.read_excel('Formato guia control de renta.xlsx', sheet_name='Control Renta Livianos', header=0, parse_dates=['Fecha Inicio', 'Fecha Finalizacion'])
+df_formato_guia=df_formato_guia.iloc[:,:]
 df_livianos=leeryUnir()
 
 # Realiza la fusión (merge) basada en las columnas 'Matrícula' y 'Cupo'
@@ -234,7 +234,7 @@ df_formato_guia = pd.merge(df_formato_guia, df_report[['Matrícula', 'Sin viajes
 df_formato_guia=df_formato_guia.drop(columns=['Matrícula'])
 # Leer el archivo "formato guia control renta" el de realizar el cambio
 df_formato_guia['ESTADO']=df_formato_guia['ESTADO'].apply(limpiar_estados)
-df_formato_guia.loc[df_formato_guia['BL']=="VACIO",'BL']=""
+#df_formato_guia.loc[df_formato_guia['BL']=="VACIO",'BL']=""
 #endregion
 
 # Obtener las columnas "Matricula" y "Total Distancia(km)" del archivo "informe"
@@ -321,8 +321,8 @@ df_formato_guia.loc[df_formato_guia['BL']=="VACIO",'ESTADO']="DISPONIBLE"
 df_formato_guia.loc[df_formato_guia['ESTADO']=="DISPONIBLE",columnas]=""
 df_formato_guia['PICO Y PLACA']=""
 df_formato_guia['PICO Y PLACA MANANA']=""
-df_formato_guia['PICO Y PLACA']=df_formato_guia.apply(lambda row: picoyplaca(row, 1), axis=1)
-df_formato_guia['PICO Y PLACA MANANA'] = df_formato_guia.apply(lambda row: picoyplaca(row, 2), axis=1)
+df_formato_guia['PICO Y PLACA'] = df_formato_guia.apply(lambda row: picoyplaca(row, 1) if not isinstance(row['Cupo'], float) else None, axis=1)
+df_formato_guia['PICO Y PLACA'] = df_formato_guia.apply(lambda row: picoyplaca(row, 2) if not isinstance(row['Cupo'], float) else None, axis=1)
  
 df_formato_guia['ESTADO']=df_formato_guia['ESTADO'].apply(limpiar_estados)
 # Guardar los cambios en el archivo "formato guia control renta"

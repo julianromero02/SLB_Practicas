@@ -78,16 +78,29 @@ def calcular_distancia(row):
                 if(row['Distance KMS'])<60 and aux>60:
                     return aux
     return aux
+from datetime import datetime
+
+def convert_date_format(date_str):
+    # Parse the input date string
+    dt = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+    
+    # Format the date into the desired format
+    formatted_date = dt.strftime("%m/%d/%Y %I:%M %p")
+    
+    return formatted_date
+
+
 #Cargar el archivo de Excel
-df=pd.read_excel('UnidossVacios.xlsx')
+df=pd.read_excel('vacios20-10.xlsx')
 #Elimino registros cancelados
 df=df[df['ESTADO'].str.lower() != 'viaje cancelado']
 df=df[df['ESTADO'].str.lower() != 'cancelar viaje']
 df["Origin"] = df["Origin"].apply(limpiar_lugares)
+df['Fecha y Hora de cargue']=df['Fecha y Hora de cargue'].apply(convert_date_format)
 df["Destination"] = df["Destination"].apply(limpiar_lugares)
 #Reemplazo los valores de Logistic Cordinator
-df['Logistic coordinator']="Paola Andrea Chacon Acuna"
-df['Period']='Jan-24'
+df['Logistic coordinator']="Jhon Gomez"
+df['Period']='Mar-24'
 # De SI a YES
 df['Rechargable Cost To Client']=df['Rechargable Cost To Client'].str.upper().replace('SI','YES')
 df['Order Base']=df['CONSECUTIVO']

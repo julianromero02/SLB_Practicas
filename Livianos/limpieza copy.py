@@ -7,7 +7,7 @@ import funciones
 
 #Establecer variables
 cordinator="Jhon Gomez"
-fecha="Apr-24"
+fecha="May-24"
 # Definir una función para truncar los valores de la columna
 def truncar_cadena(cadena,op):
     cadena = str(cadena)
@@ -50,6 +50,9 @@ def proveedores(row):
     rentas=pd.read_excel("Placas.xlsx",sheet_name="Renta",header=0)
     call=pd.read_excel("Placas.xlsx",sheet_name="Call Out",header=0)
     
+    if 'VIGIA' in row['Suppliers'] :
+        row['Suppliers'] = 'COL_VIGIA'
+        return row['Suppliers']
     if row['Service Type']=="RENTA FIJA OFS":
             matricula=row['Vehicle plate']
             matching_row=rentas.loc[rentas['Cupo/Placa']==matricula]
@@ -152,24 +155,28 @@ def provisionar(row):
     hour_request=row['Fecha y hora de creacion de OB2']
     def recargo_hora(freight,hour,add,superadd):
         #¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ IMPORTANTE CAMBIAR FECHA PARA CADA DIA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       compare_datetime_a = pd.to_datetime('03/19/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
-       compare_datetime_b = pd.to_datetime('03/19/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_a = pd.to_datetime('04/18/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_b = pd.to_datetime('04/18/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
        if hour > compare_datetime_a and hour<compare_datetime_b:
            return freight+add
        elif hour >=compare_datetime_b:
            return freight+superadd
        else:
            return freight
-           
+    if row['Origin']=='NAN' or row['Origin']=='' or row['Origin']==None:
+        Origen = input(f"El servicio {row['GS']} es NAN, ingrese el Origen")
+        row['Origin']=Origen
+        Destino = input(f"El servicio {row['GS']}es NAN,  ingrese el destino")
+        row['Destino']=Destino
+
     if row['Service Type']=="RENTA FIJA OFS":
         tipo=mapear_renta(row)
         freight=0
-        if not tipo=="PICKUP":
-            if tipo=="AUT HIBRIDO" or tipo=="PICK UP ELECTRICA":
+        if not tipo=="PICKUP" and tipo=="AUT HIBRIDO" or tipo=="PICK UP ELECTRICA":
                 #retorno=input(f"Es un recorrido es un {tipo} con {row['GS']} con retorno o día (1: Es todo el día ; 2. 24 horas ")
-                if row['HORAS']=='24h':
+            if row['HORAS']=='24h':
                     freight= 550000*row['DaysOfServices']
-                else:
+            else:
                     freight=350000*row["DaysOfServices"]
             freight=recargo_hora(freight,hour_request,40000,60000)
             return freight
@@ -271,7 +278,8 @@ def tipo(row):
     elif 'ESCOLTA' in tipo:
         df.loc[row.name, 'Vehicle Type'] = 'ESCOLTAS'
         df.loc[row.name, 'Vehicle plate']='CALL OUT'
-        df.loc[row.name, 'Real Plate services'] = input(f"Ingrese la placa que hizo el servicio de escolta con {row['NN']}: ")
+        df.loc[row.name, 'Real Plate services'] ='ESCORT'
+        # df.loc[row.name, 'Real Plate services'] = input(f"Ingrese la placa que hizo el servicio de escolta con {row['NN']}: ")
         return 'ESCOLTAS'
     elif 'CHALUPA' in tipo:
         df.loc[row.name, 'Vehicle Type'] = 'CHALUPA'
@@ -279,11 +287,16 @@ def tipo(row):
         df.loc[row.name, 'Real Plate services'] = "AST-10"
     return tipo
 
+
 #Limpieza
 
 #Cargar el archivo de Excel
-df=pd.read_excel('livianos21.xlsx')
+df=pd.read_excel('livianos19.xlsx')
+julian=True
 
+
+df = df[df['Suppliers'].apply(lambda x: type(x) != float)]
+df=df[df['Suppliers'] != 'LAM_COSMOTRANS_SAS_COL_CPG']
 df=df[df['ESTADO'] != 'CANCELADO']
 df=df[df['Suppliers']!= None]
 
@@ -300,12 +313,19 @@ df['Shipment'] = df['NN']
 df['Period']=fecha
 # Formato de placas
 #Verificar que si es call out
+df['Real Plate services'] = df['Real Plate services'].apply(lambda x: str(x) if not pd.isnull(x) else '')
+
+# Apply the regular expression to remove 'RENTA' from the string
+df['Real Plate services'] = df['Real Plate services'].apply(lambda x: re.sub('RENTA', '', x))
+
+
 df['Vehicle plate'] = df.apply(lambda row: 'CALL OUT' if row['Service Type'] == 'CALL OUT' else row['Vehicle plate'], axis=1)
 df['Vehicle plate'] = df['Vehicle plate'].apply(lambda x: truncar_cadena(x, op=1))
 df['Real Plate services'] = df['Real Plate services'].apply(lambda x: truncar_cadena(x, op=2))
 df['Real Plate services'] = df['Real Plate services'].str.upper()
 df['Vehicle plate'] = df['Vehicle plate'].str.upper()
-df['Vehicle plate'] = df['Vehicle plate'].str.replace('-', '')
+df['Vehicle plate'] = df['Vehicle plate'].str.replace('-', ' ')
+df['Vehicle plate'] = df['Vehicle plate'].str.replace('RENTA', '')
 # De SI a YES
 df['Rechargable Cost To Client']=df['Rechargable Cost To Client'].str.upper().replace('SI','YES')
 #Vamos a corregir el WBS
@@ -315,8 +335,9 @@ df['WSB'] = df['WSB'].apply(verificarWBS)
 df['Fecha Finalizacion2'] = pd.to_datetime(df['Fecha Finalizacion'], format='%m/%d/%Y %H:%M:%S')
 df['Fecha y hora de cargue2'] = pd.to_datetime(df['Fecha y hora de cargue'], format='%m/%d/%Y %H:%M:%S')
 df['Fecha y hora de creacion de OB2']=pd.to_datetime(df['Fecha y hora de creacion de OB'],format='%m/%d/%Y %H:%M:%S')
-# Calcula la diferencia en días, ignorando las horas
 df['DaysOfServices'] = (df['Fecha Finalizacion2'].dt.floor('d') - df['Fecha y hora de cargue2'].dt.floor('d')).dt.days + 1
+
+# Calcula la diferencia en días, ignorando las horas
 df["Suppliers"]= df.apply(proveedores,axis=1)
 # Distancia de Ciudades
     #1. Vamos primero a limpiar el nombre de las ciudades 
@@ -328,23 +349,30 @@ df["Destination"] = df["Destination"].apply(lambda x:limpiar_lugares(x,1))
 # Aplicar el estilo a la columna deseada, si hay algun valor lo coloreo
 #df= df.style.applymap(resaltar_valor, subset=['Distance KM'])
      #2 Los que sean lugares iguales van a ser 100km por el número de días y de lo contrario lo dejo nulo   
-df['Freight']=df.apply(provisionar,axis=1)
-df['Distance KM']=df.apply(calcular_distancia,axis=1)      
+
+if julian==True:
+    df['Freight']=df.apply(provisionar,axis=1)
+    df['Distance KM']=df.apply(calcular_distancia,axis=1)
+    df['Distance KM']=df['Distance KM'].apply(quitar_separadores)
+    df['Distance KM']=df['Distance KM'].apply(sin_decimales) 
+    df['Freight']=df['Freight'].apply(quitar_separadores)
+    df['Freight']=df['Freight'].apply(sin_decimales)
 columnas_eliminar = ['Fecha Finalizacion2', 'Fecha y hora de cargue2','Fecha y hora de creacion de OB2']
 df=df.drop(columns=columnas_eliminar)
 # Resaltar
 condicion = df['HORAS'] =='24h'
 
 df['Vehicle plate'] = df['Vehicle plate'].apply(lambda x: 'CALL OUT' if x == 'CALL OUT' else x)
-#df['Distance KM']=df.apply(parchar,axis=1)  
-df['Distance KM']=df['Distance KM'].apply(quitar_separadores)
-df['Freight']=df['Freight'].apply(quitar_separadores)
-df['Distance KM']=df['Distance KM'].apply(sin_decimales)
-df['Freight']=df['Freight'].apply(sin_decimales)
+#df['Distance KM']=df.apply(parchar,axis=1)
+ 
+
+
 df['Vehicle Type']=df['Vehicle Type'].str.upper().replace(' ','')
 df['GLAccountType']="EMPLOYEE TRAVEL"
 df['Vehicle Type']=df.apply(tipo,axis=1)
+ 
+if julian==False:
+    df['Freight']=""
 
-df.to_excel('C:/Users/57317/Documents/SLB/SLB_programas/Livianos/reportes/03-20.xlsx', engine='openpyxl', index=False)
-df['Distance KM']=""
-df['Freight']=""
+df.to_excel('C:/Users/57317/Documents/SLB/SLB_programas/Livianos/reportes/04-19.xlsx', engine='openpyxl', index=False)
+
