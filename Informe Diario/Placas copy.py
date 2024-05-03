@@ -72,38 +72,56 @@ def limpiezau(df):
     return df
     #Modificar el tema de las fechas, para luego si pasarlo a tipo fecha De 2023-09-19 13:37:02 o quizá no
     
+import pandas as pd
+from datetime import datetime
+import re
+
+# Define a function to convert the date to the desired format
+def reordenar_fecha(fecha_str):
+        # Try parsing with the format "M/D/YYYY H:mm"
+    try:
+        fecha_obj = datetime.strptime(fecha_str, "%m/%d/%Y %H:%M")
+        return fecha_obj.strftime("%m/%d/%Y %H:%M:%S")
+    except ValueError:
+        pass 
+    try:
+        return datetime.strptime(fecha_str, "%Y/%m/%d %H:%M:%S").strftime("%m/%d/%Y %H:%M:%S")
+    except ValueError:
+        pass  # If parsing with the first format fails, proceed to the next format
+
+    # Try parsing with the first format "%Y-%m-%d %H:%M:%S"
+
+    try:
+        return datetime.strptime(fecha_str, "%Y-%m-%d %H:%M:%S").strftime("%m/%d/%Y %H:%M:%S")
+    except ValueError:
+        # If parsing fails, try the second format "%m/%d/%Y %H:%M:%S"
+        try:
+            return datetime.strptime(fecha_str, "%m/%d/%Y %H:%M:%S").strftime("%m/%d/%Y %H:%M:%S")
+        except ValueError:
+            # If both fail, assume it's just a date (without time)
+            return fecha_str
+
+# Function to process recent data
 def reciente(df):
     df.rename(columns={'NN':'ID Servicio',"Origin":"Origen","Destination":"Destino","Vehicle plate":"Cupo","Fecha y Hora de cargue":'Fecha Inicio'},inplace=True)
-    df['Fecha Finalizacion']=df['Fecha Finalizacion'].astype(str)
-    df['Fecha Inicio']=df['Fecha Inicio'].astype(str)
-    # Reemplazar los guiones "-" por barras "/" en las columnas de fecha
-    df['Fecha Inicio'] = df['Fecha Inicio'].str.replace('-', '/')
-    df['Fecha Finalizacion'] = df['Fecha Finalizacion'].str.replace('-', '/')
-    # Convertir la columna 'Fecha Inicio' al formato deseado
+    df['Fecha Finalizacion'] = df['Fecha Finalizacion'].astype(str)
+    df['Fecha Inicio'] = df['Fecha Inicio'].astype(str)
+    
+    # Apply the reordenar_fecha function to reorder date formats
     df['Fecha Inicio'] = df['Fecha Inicio'].apply(reordenar_fecha)
     df['Fecha Finalizacion'] = df['Fecha Finalizacion'].apply(reordenar_fecha)
-    df['Fecha Inicio']=pd.to_datetime(df['Fecha Inicio'])
-    df['Fecha Finalizacion']=pd.to_datetime(df['Fecha Finalizacion'])
-    #df['Fecha y Hora de cargue']=pd.to_datetime(df['Fecha y Hora de cargue'])
-    #Find the rows whit the most recent date
-    idx_mas_reciente=df.groupby('Cupo')['Fecha Finalizacion'].idxmax()
-    df=df.loc[idx_mas_reciente]
     
-    return df   
-# Define una función para convertir la fecha al formato deseado
-def reordenar_fecha(fecha_str):
-    fecha_reordenada=fecha_str
-    patron = r"\d{4}"
-    if "2024" in fecha_reordenada:
-        fecha_str = re.sub(patron, "2024", fecha_str)
-    else :
-        # Reemplazar todas las ocurrencias del patrón con "2023"
-        fecha_str = re.sub(patron, "2023", fecha_str)
-    if re.match(r"^\d{4}", fecha_str):
-            fecha_reordenada = datetime.strptime(fecha_str, "%Y/%m/%d %H:%M:%S").strftime("%m/%d/%Y %H:%M:%S")
-    elif len(fecha_str)<12 and len(fecha_str)>5:
-            fecha_reordenada= fecha_str + " 00:00:00"
-    return fecha_reordenada
+    # Convert to datetime
+    df['Fecha Inicio'] = pd.to_datetime(df['Fecha Inicio'], errors='coerce')
+    df['Fecha Finalizacion'] = pd.to_datetime(df['Fecha Finalizacion'], errors='coerce')
+    
+    # Find the rows with the most recent date
+    idx_mas_reciente = df.groupby('Cupo')['Fecha Finalizacion'].idxmax()
+    df = df.loc[idx_mas_reciente]
+    
+    return df
+
+
 # Función para eliminar después de la coma si el valor es un string
 def eliminar_despues_de_coma(cadena):
     if isinstance(cadena, str):
@@ -116,24 +134,27 @@ def actESTADO(row, today):
     fecha_inicio = reordenar_fecha(fecha_inicio)
     fecha = reordenar_fecha(fecha_str)
     palabra = ['CONDUCTOR', 'MANTENIMIENTO']
-    today = pd.Timestamp(today)  # Convierte today a un objeto Timestamp
+    today = pd.Timestamp(today)  # Convert today to a Timestamp object
     
-    # Intenta parsear la fecha
+    # Attempt to parse the dates
     try:
         fecha = pd.to_datetime(fecha, format="%m/%d/%Y %H:%M:%S")
-        fecha_inicio= pd.to_datetime(fecha_inicio, format="%m/%d/%Y %H:%M:%S")
+        fecha_inicio = pd.to_datetime(fecha_inicio, format="%m/%d/%Y %H:%M:%S")
     except ValueError:
-        # Si no se puede parsear como fecha, asume que es una fecha incorrecta
-        fecha_inicio=fecha_inicio
-    estado_str = str(row['ESTADO'])  # Convierte el valor de la columna 'ESTADO' a cadena
+        # If parsing fails, assume it's an incorrect date
+        fecha_inicio = fecha_inicio
+        print(fecha_inicio)
+
+    estado_str = str(row['ESTADO'])  # Convert the value of the 'ESTADO' column to a string
+
     if not (re.search(rf'\b{"|".join(palabra)}\b', estado_str, flags=re.IGNORECASE)):
-        if fecha < today:
+        if pd.notnull(fecha) and fecha < today:
             return "DISPONIBLE"
-        elif fecha >= today and fecha_inicio <= today:
+        elif pd.notnull(fecha) and fecha >= today and fecha_inicio <= today:
             return "EN SERVICIO"
-        elif fecha_inicio > today and len(row['Fecha Inicio'].strip()) > 0:
+        elif pd.notnull(fecha_inicio) and fecha_inicio > today and len(row['Fecha Inicio'].strip()) > 0:
             return "PROGRAMADO"
-        elif fecha >= today:
+        elif pd.notnull(fecha) and fecha >= today:
             return "EN SERVICIO"
     return row['ESTADO']
 def picoyplaca(row,op):

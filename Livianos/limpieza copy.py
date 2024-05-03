@@ -155,8 +155,8 @@ def provisionar(row):
     hour_request=row['Fecha y hora de creacion de OB2']
     def recargo_hora(freight,hour,add,superadd):
         #¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ IMPORTANTE CAMBIAR FECHA PARA CADA DIA !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       compare_datetime_a = pd.to_datetime('04/18/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
-       compare_datetime_b = pd.to_datetime('04/18/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_a = pd.to_datetime('04/21/2024 17:00:00', format='%m/%d/%Y %H:%M:%S')
+       compare_datetime_b = pd.to_datetime('04/21/2024 14:00:00', format='%m/%d/%Y %H:%M:%S')
        if hour > compare_datetime_a and hour<compare_datetime_b:
            return freight+add
        elif hour >=compare_datetime_b:
@@ -291,7 +291,7 @@ def tipo(row):
 #Limpieza
 
 #Cargar el archivo de Excel
-df=pd.read_excel('livianos19.xlsx')
+df=pd.read_excel('livianos22.xlsx')
 julian=True
 
 
@@ -374,5 +374,5 @@ df['Vehicle Type']=df.apply(tipo,axis=1)
 if julian==False:
     df['Freight']=""
 
-df.to_excel('C:/Users/57317/Documents/SLB/SLB_programas/Livianos/reportes/04-19.xlsx', engine='openpyxl', index=False)
+df.to_excel('C:/Users/57317/Documents/SLB/SLB_programas/Livianos/reportes/04-22.xlsx', engine='openpyxl', index=False)
 
